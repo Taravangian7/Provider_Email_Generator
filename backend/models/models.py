@@ -86,3 +86,7 @@ class SentHistoryResponse(BaseModel):
     product_name:str = Field(...,description="Nombre del producto")
     provider_name:str = Field(...,description="Nombre del proveedor")
     email_provider: EmailStr = Field(...,description="Email del proveedor")
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
