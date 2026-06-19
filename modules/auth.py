@@ -5,7 +5,7 @@ import os
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException,Depends
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")#Permite verificar contraseña hasheada
 def verify_password(username,plain_password) -> bool:
     hashed_password=os.getenv("USER_PASSWORD")
     user=os.getenv("USER_USERNAME")
@@ -32,6 +32,6 @@ def verify_token(token)->bool:
         raise HTTPException(status_code=401, detail="Token inválido o expirado")
 
 #esta función va a ejecutarse cada vez que se llama a un endpoint. Busca en el header el token y verifica que sea válido.
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")#TokenUrl es para que desde /docs fastAPI sepa donde mandar las credenciales cuando te queres autenticar(y de donde obtener el token)
 def get_current_user(token: str = Depends(oauth2_scheme)):
     return verify_token(token)

@@ -8,7 +8,7 @@ from backend.routers import brands,providers,products,mails,auth
 app=FastAPI()
 
 @app.get("/test")
-def test(db: Session=Depends(get_db)): #No pasas get_db() porque sino la estarías ejecutando ahí mismo, vos le pasas la funcion a Depends y FastAPI ejecuta cuando necesita
+def test(db: Session=Depends(get_db),user=Depends(get_current_user)): #No pasas get_db() porque sino la estarías ejecutando ahí mismo, vos le pasas la funcion a Depends y FastAPI ejecuta cuando necesita
     result=db.execute(text("Select 1")).fetchone()
     return{"db_connection":"ok","result":result[0]}
 
