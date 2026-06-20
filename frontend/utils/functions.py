@@ -23,3 +23,7 @@ def logout():
     st.session_state.clear()
     controller.remove("token")
     st.switch_page("app.py")
+
+def get_headers():
+    token = st.session_state.get("token")
+    return {"Authorization": f"Bearer {token}"}

@@ -2,12 +2,18 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import require_login,save_token,logout
+from utils.functions import save_token,controller
+
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 st.title("Mensajería Automática")
+#Si tengo el token en las coockies del navegador se lo paso al state de streamlit.
+if not st.session_state.get("token"):
+    token = controller.get("token")
+    if token:
+        st.session_state["token"] = token
 
 if st.session_state.get("token"):
     st.switch_page("pages/mails.py")
