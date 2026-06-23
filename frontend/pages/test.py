@@ -1,0 +1,2 @@
+elton={}
+print(elton[None])

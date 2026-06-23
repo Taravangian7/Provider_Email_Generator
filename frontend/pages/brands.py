@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import require_login,save_token,logout,get_headers
+from utils.functions import require_login,logout,get_headers,get_brands
+import time
 
 #Verifico tener token de acceso, en caso de estar en el state de la web se lo paso al state de streamlit
 require_login()
@@ -21,14 +22,16 @@ API_URL = os.getenv("API_URL", "http://localhost:8000")
 def edit_brand(id,name):
     new_name = st.text_input("Nombre", value=name)
     if st.button("Guardar"):
-        edited_brand=requests.put(f"{API_URL}/brands/{id}",json={"brand_name":new_name},headers=headers)
-        if edited_brand.status_code==200:
-            st.success("Se ha modificado la Marca")
-            st.cache_data.clear()
+        if new_name==name:
             st.rerun()
         else:
-            error=edited_brand.json()["detail"]
-            st.error(error)
+            edited_brand=requests.put(f"{API_URL}/brands/{id}",json={"brand_name":new_name},headers=headers)
+            if edited_brand.status_code==200:
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                error=edited_brand.json()["detail"]
+                st.error(error)
 
 #Confirmar borrar marca
 @st.dialog("Confirmar eliminación")
@@ -45,11 +48,6 @@ def confirm_delete(id, name):
     if col2.button("Cancelar"):
         st.rerun()
 
-#Guardo en Caché todas las marcas
-@st.cache_data(ttl=30, show_spinner=False)
-def get_brands():
-    return requests.get(f"{API_URL}/brands", headers=get_headers()).json()
-
 st.title("Ingresar nueva Marca")
 
 with st.form("Ingresar nueva Marca"):
@@ -59,6 +57,8 @@ if submit:
     response = requests.post(f"{API_URL}/brands",json={"brand_name": brand_name},headers=headers)
     if response.status_code==200:
         st.success("Marca agregada")
+        st.success("Proveedor agregado")
+        time.sleep(0.5)
         st.cache_data.clear()
         st.rerun()
     else:

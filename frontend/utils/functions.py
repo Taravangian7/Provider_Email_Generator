@@ -1,6 +1,9 @@
 import streamlit as st
 import time
 from streamlit_cookies_controller import CookieController
+import requests
+import os
+from dotenv import load_dotenv
 
 controller = CookieController() #Me sirve para guardar el token en las cookies, ya que streamlit borra el session_state cada vez que actualizo
 
@@ -27,3 +30,24 @@ def logout():
 def get_headers():
     token = st.session_state.get("token")
     return {"Authorization": f"Bearer {token}"}
+
+#Guardo en Caché todas las marcas
+@st.cache_data(ttl=30, show_spinner=False)
+def get_brands():
+    load_dotenv()
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
+    return requests.get(f"{API_URL}/brands", headers=get_headers()).json()
+
+#Guardo en Caché todas los proveedores
+@st.cache_data(ttl=30, show_spinner=False)
+def get_providers():
+    load_dotenv()
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
+    return requests.get(f"{API_URL}/providers", headers=get_headers()).json()
+
+#Guardo en Caché todos los productos
+@st.cache_data(ttl=30, show_spinner=False)
+def get_products():
+    load_dotenv()
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
+    return requests.get(f"{API_URL}/products", headers=get_headers()).json()

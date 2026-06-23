@@ -22,5 +22,7 @@ def delete_cloudinary_file(file_path: str):
     try:
         public_id = file_path.split("/")[-1].split(".")[0]
         cloudinary.uploader.destroy(public_id)
-    except:
+    except Exception as e:
+        print(f"Error Cloudinary: {e}")
         pass
+
