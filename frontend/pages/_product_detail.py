@@ -75,7 +75,7 @@ provider_options = {b["provider_name"]: b["id"] for b in providers_data}
 st.title("Gestionar proveedores")
 
 with st.form("Ingresar nuevo Producto"):
-    st.write(f"Producto: **{st.session_state.get("selected_product_name")}**")
+    st.write(f"Producto: **{st.session_state.get("selected_product_name")}** ({st.session_state.get("selected_product_brand")})")
     selected_provider = st.selectbox(
     "Asignar Proveedor",
     options=list(provider_options.keys()),
@@ -111,7 +111,7 @@ for provider in product_providers_data:
 st.title("Agregar fotos")
 
 with st.form("Ingresar nueva foto"):
-    st.write(f"Producto: **{st.session_state.get("selected_product_name")}**")
+    st.write(f"Producto: **{st.session_state.get("selected_product_name")}** ({st.session_state.get("selected_product_brand")})")
     uploaded_file = st.file_uploader("Subir foto", type=["jpg", "jpeg", "png", "webp"])
     submit1 = st.form_submit_button("Ingresar", key=f"insert_picture_{product_id}")
 if submit1:

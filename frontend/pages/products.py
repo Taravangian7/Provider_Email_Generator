@@ -103,6 +103,7 @@ for product in filtered:
     if col4.button("📋", key=f"detail_{product['id']}"):
         st.session_state["selected_product_id"] = product["id"]
         st.session_state["selected_product_name"] = product["product_name"]
+        st.session_state["selected_product_brand"] = product["brand_name"]
         st.switch_page("pages/_product_detail.py")
     if col5.button("✏️", key=f"edit_{product['id']}"):
         edit_product(product_name=product["product_name"],serial_number=product["serial_number"],id=product["id"],brand_name=product["brand_name"],brand_options=brand_options)

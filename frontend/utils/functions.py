@@ -51,3 +51,10 @@ def get_products():
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
     return requests.get(f"{API_URL}/products", headers=get_headers()).json()
+
+#Guardo en Caché todas las plantillas
+@st.cache_data(ttl=30, show_spinner=False)
+def get_templates(id:int):
+    load_dotenv()
+    API_URL = os.getenv("API_URL", "http://localhost:8000")
+    return requests.get(f"{API_URL}/providers/{id}/templates", headers=get_headers()).json()
