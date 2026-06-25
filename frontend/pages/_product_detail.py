@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import require_login,logout,get_headers,get_providers,get_products
+from utils.functions import require_login,logout,get_headers,get_providers
 import time
 
 #Verifico tener token de acceso, en caso de estar en el state de la web se lo paso al state de streamlit
@@ -68,13 +68,15 @@ def get_product_files(id_product):
     API_URL = os.getenv("API_URL", "http://localhost:8000")
     return requests.get(f"{API_URL}/products/{id_product}/files", headers=get_headers()).json()
 
-
-providers_data = get_providers()
-provider_options = {b["provider_name"]: b["id"] for b in providers_data}
+with st.spinner("Cargando..."):
+    providers_data = get_providers()
+    product_providers_data=get_product_providers(id_product=product_id)
+    product_files_data=get_product_files(id_product=product_id)
 
 st.title("Gestionar proveedores")
 
 with st.form("Ingresar nuevo Producto"):
+    provider_options = {b["provider_name"]: b["id"] for b in providers_data}
     st.write(f"Producto: **{st.session_state.get("selected_product_name")}** ({st.session_state.get("selected_product_brand")})")
     selected_provider = st.selectbox(
     "Asignar Proveedor",
@@ -98,13 +100,11 @@ if submit:
             error=response.json()["detail"]
             st.error(error)
 
-product_providers_data=get_product_providers(id_product=product_id)
-
 for provider in product_providers_data:
     col1, col2, col3 = st.columns([4, 4, 1])
     col1.write(provider["provider_name"])
     col2.write(provider["email"])
-    if col3.button("🗑️", key=f"del_{product_id}_{provider['id']}"):
+    if col3.button("🗑️", key=f"delprov_{product_id}_{provider['id']}"):
         unassign_provider(provider_name=provider["provider_name"],id_product=product_id,id_provider=provider["id"])
     st.divider()
 
@@ -128,12 +128,10 @@ if submit1:
             error=response.json()["detail"]
             st.error(error)
 
-product_files_data=get_product_files(id_product=product_id)
-
 for file in product_files_data:
     col1, col2, col3 = st.columns([4, 4, 1])
     col1.write(file["file_path"])
     col2.write(file["file_type"])
-    if col3.button("🗑️", key=f"del_{product_id}_{file['id_file']}"):
+    if col3.button("🗑️", key=f"delfile_{product_id}_{file['id_file']}"):
         delete_file(id_file=file['id_file'],id_product=file['id_product'])
     st.divider()

@@ -3,6 +3,7 @@ import time
 from streamlit_cookies_controller import CookieController
 import requests
 import os
+import re
 from dotenv import load_dotenv
 
 controller = CookieController() #Me sirve para guardar el token en las cookies, ya que streamlit borra el session_state cada vez que actualizo
@@ -58,3 +59,7 @@ def get_templates(id:int):
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
     return requests.get(f"{API_URL}/providers/{id}/templates", headers=get_headers()).json()
+
+#Validar formato Email
+def validate_email(email:str)->bool:
+    return re.match(r"^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$", email)

@@ -33,6 +33,10 @@ def edit_product(id,brand_name,product_name,serial_number,brand_options):
     if st.button("Guardar"):
         if(new_name==product_name and new_serial==serial_number and selected_brand==brand_name):
             st.rerun()
+        elif not new_name.strip():
+            st.error("Debe ingresar un nombre de producto")
+        elif not new_serial.strip():
+            st.error("Debe ingresar un serial number")
         else:
             id_brand=brand_options[selected_brand]
             edited_product=requests.put(f"{API_URL}/products/{id}",json={"product_name":new_name,"serial_number":new_serial,"id_brand":id_brand},headers=headers)
@@ -60,7 +64,9 @@ def confirm_delete(id, name):
         st.rerun()
 
 
-brands_data = get_brands()
+with st.spinner("Cargando..."):
+    products_data=get_products()
+    brands_data = get_brands()
 brand_options = {b["brand_name"]: b["id"] for b in brands_data}
 
 st.title("Ingresar nuevo Producto")
@@ -78,6 +84,10 @@ with st.form("Ingresar nuevo Producto"):
 if submit:
     if selected_brand is None:
         st.error("Selecciona una Marca")
+    elif not product_name.strip():
+        st.error("Debe ingresar un nombre de producto")
+    elif not serial_number.strip():
+        st.error("Debe ingresar un serial number")
     else:
         id_brand=brand_options[selected_brand]
         response = requests.post(f"{API_URL}/products",json={"product_name": product_name,"serial_number":serial_number,"id_brand":id_brand},headers=headers)
@@ -91,9 +101,9 @@ if submit:
             st.error(error)
 
 st.title("Gestionar Producto")
-providers_data=get_products()
+
 search = st.text_input("Buscar producto", placeholder="Escribí un nombre...")
-filtered = [b for b in providers_data if search.strip().lower() in b["product_name"].lower()]
+filtered = [b for b in products_data if search.strip().lower() in b["product_name"].lower()]
 
 for product in filtered:
     col1, col2,col3, col4, col5,col6 = st.columns([4,4,4,1, 1, 1])

@@ -96,7 +96,7 @@ def edit_template(old_body,old_template_name,id_provider,id_template):
                 error=save_template.json()["detail"]
                 st.error(error)
 
-#Confirmar borrar marca
+#Confirmar borrar template
 @st.dialog("Confirmar eliminación")
 def confirm_delete(id_provider,id_template, name):
     st.write(f"¿Estás seguro que querés eliminar el template **{name}**?")
@@ -111,9 +111,11 @@ def confirm_delete(id_provider,id_template, name):
     if col2.button("Cancelar"):
         st.rerun()
 
+with st.spinner("Cargando..."):
+    providers=get_providers()
+
 st.title("Plantillas")
 
-providers=get_providers()
 providers_option={a["provider_name"]:[a["id"],a["email"]] for a in providers}
 selected_provider=st.selectbox(
     "Proveedor",
@@ -130,8 +132,8 @@ if selected_provider:
         new_template(provider_id=provider_id)
 
     st.title("Gestionar plantillas")
-    templates=get_templates(id=provider_id)
 
+    templates=get_templates(id=provider_id)
     for template in templates:
         col1, col2, col3 = st.columns([8, 1, 1])
         col1.write(template["template_name"])

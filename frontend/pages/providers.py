@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import require_login,logout,get_headers,get_providers
+from utils.functions import require_login,logout,get_headers,get_providers,validate_email
 import time
 
 #Verifico tener token de acceso, en caso de estar en el state de la web se lo paso al state de streamlit
@@ -26,6 +26,10 @@ def edit_provider(id,name,email):
         if (new_name==name and new_email==email):
             st.rerun()
             #st.warning("Sin modificaciones")
+        elif not new_name.strip():
+            st.error("Debe ingresar un nombre de proveedor")
+        elif not validate_email(email=new_email):
+            st.error("Debe ingresar un email válido xxxx@xxx.xxx")
         else:
             edited_provider=requests.put(f"{API_URL}/providers/{id}",json={"provider_name":new_name,"email":new_email},headers=headers)
             if edited_provider.status_code==200:
@@ -51,6 +55,9 @@ def confirm_delete(id, name):
     if col2.button("Cancelar"):
         st.rerun()
 
+with st.spinner("Cargando..."):
+    providers_data=get_providers()
+    
 st.title("Ingresar nuevo Proveedor")
 
 with st.form("Ingresar nuevo Proveedor"):
@@ -58,18 +65,23 @@ with st.form("Ingresar nuevo Proveedor"):
     email = st.text_input("Email")
     submit = st.form_submit_button("Ingresar", key=f"insert_provider")
 if submit:
-    response = requests.post(f"{API_URL}/providers",json={"provider_name": provider_name,"email":email},headers=headers)
-    if response.status_code==200:
-        st.success("Proveedor agregado")
-        time.sleep(0.5)
-        st.cache_data.clear()
-        st.rerun()
+    if not provider_name.strip():
+        st.error("Debe ingresar un nombre de proveedor")
+    elif not validate_email(email=email):
+        st.error("Debe ingresar un email válido xxxx@xxx.xxx")
     else:
-        error=response.json()["detail"]
-        st.error(error)
+        response = requests.post(f"{API_URL}/providers",json={"provider_name": provider_name,"email":email},headers=headers)
+        if response.status_code==200:
+            st.success("Proveedor agregado")
+            time.sleep(0.5)
+            st.cache_data.clear()
+            st.rerun()
+        else:
+            error=response.json()["detail"]
+            st.error(error)
 
 st.title("Gestionar Proveedores")
-providers_data=get_providers()
+#providers_data=get_providers()
 search = st.text_input("Buscar proveedor", placeholder="Escribí un nombre...")
 filtered = [b for b in providers_data if search.strip().lower() in b["provider_name"].lower()]
 
