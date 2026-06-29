@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from modules.db import get_db
 from modules.exceptions import handle_integrity_error
 from sqlalchemy import text
-from backend.models.models import ProviderCreate,ProviderResponse,TemplateCreate,TemplateResponse
+from backend.models.models import ProviderCreate,ProviderResponse,TemplateCreate,TemplateResponse,ProductResponse
 
 router = APIRouter()
 
@@ -112,3 +112,16 @@ def delete_template(id:int,id_template:int,db: Session=Depends(get_db)):
                 detail="El template no se ha encontrado en la base de datos")
     template= TemplateResponse(id_template=id_template,id_provider=id,template_name=delete_template._mapping["template_name"],template_body=delete_template._mapping["mail_template"])
     return template
+
+@router.get("/providers/{id}/products",response_model=list[ProductResponse])
+def products(id:int,db: Session=Depends(get_db)): 
+    query=text("Select p.ID,p.Product_Name,p.Serial_Number,p.ID_Brand,b.Brand_Name " \
+    "From PRODUCT p " \
+    "INNER JOIN BRAND b on p.ID_Brand = b.ID " \
+    "INNER JOIN PRODUCT_PROVIDER pp on p.ID = pp.ID_Product " \
+    "WHERE pp.ID_Provider=:id")
+    provider_products=db.execute(query,{"id":id}).fetchall()
+    product_list= []
+    for row in provider_products:
+        product_list.append(ProductResponse(id=row._mapping["id"],product_name=row._mapping["product_name"],serial_number=row._mapping["serial_number"],id_brand=row._mapping["id_brand"],brand_name=row._mapping["brand_name"]))
+    return product_list

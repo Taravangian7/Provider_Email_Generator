@@ -2,11 +2,12 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import require_login,logout,get_headers,get_providers,validate_email
+from utils.functions import logout,get_headers,get_providers,validate_email
 import time
 
-#Verifico tener token de acceso, en caso de estar en el state de la web se lo paso al state de streamlit
-require_login()
+#Marco como última pestaña visitada(Para comportamiento de Products)
+st.session_state["last_page"] = "providers"
+
 #Configuro headers de endpoints para mandar el token
 headers = get_headers()
 
@@ -85,12 +86,19 @@ st.title("Gestionar Proveedores")
 search = st.text_input("Buscar proveedor", placeholder="Escribí un nombre...")
 filtered = [b for b in providers_data if search.strip().lower() in b["provider_name"].lower()]
 
+# Headers
+col1, col2, col3, col4 = st.columns([5, 5, 1, 1])
+col1.markdown("<p style='color: gray; font-size: 12px; margin: 0;'>PROVEEDOR</p>", unsafe_allow_html=True)
+col2.markdown("<p style='color: gray; font-size: 12px; margin: 0;'>EMAIL</p>", unsafe_allow_html=True)
+st.markdown("<hr style='margin: 4px 0; border-color: #555;'>", unsafe_allow_html=True)
+
+
 for provider in filtered:
-    col1, col2, col3, col4 = st.columns([8,8, 1, 1])
+    col1, col2, col3, col4 = st.columns([5,5, 1, 1])
     col1.write(provider["provider_name"])
     col2.write(provider["email"])
     if col3.button("✏️", key=f"edit_{provider['id']}"):
         edit_provider(name=provider["provider_name"],email=provider["email"],id=provider["id"])
     if col4.button("🗑️", key=f"del_{provider['id']}"):
         confirm_delete(name=provider["provider_name"],id=provider["id"])
-    st.divider()
+    st.markdown("<hr style='margin: 4px 0; border-color: #333;'>", unsafe_allow_html=True)

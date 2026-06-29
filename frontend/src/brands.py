@@ -2,11 +2,12 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import require_login,logout,get_headers,get_brands
+from utils.functions import logout,get_headers,get_brands
 import time
 
-#Verifico tener token de acceso, en caso de estar en el state de la web se lo paso al state de streamlit
-require_login()
+#Marco como última pestaña visitada(Para comportamiento de Products)
+st.session_state["last_page"] = "brands"
+
 #Configuro headers de endpoints para mandar el token
 headers = get_headers()
 
@@ -76,11 +77,16 @@ st.title("Gestionar Marcas")
 search = st.text_input("Buscar marca", placeholder="Escribí un nombre...")
 filtered = [b for b in brands_data if search.strip().lower() in b["brand_name"].lower()]
 
+# Headers
+col1, col2, col3 = st.columns([10,1,1])
+col1.markdown("<p style='color: gray; font-size: 12px; margin: 0;'>MARCA</p>", unsafe_allow_html=True)
+st.markdown("<hr style='margin: 4px 0; border-color: #555;'>", unsafe_allow_html=True)
+
 for brand in filtered:
-    col1, col2, col3 = st.columns([8, 1, 1])
+    col1, col2, col3 = st.columns([10, 1, 1])
     col1.write(brand["brand_name"])
     if col2.button("✏️", key=f"edit_{brand['id']}"):
         edit_brand(name=brand["brand_name"],id=brand["id"])
     if col3.button("🗑️", key=f"del_{brand['id']}"):
         confirm_delete(name=brand["brand_name"],id=brand["id"])
-    st.divider()
+    st.markdown("<hr style='margin: 4px 0; border-color: #333;'>", unsafe_allow_html=True)

@@ -82,7 +82,8 @@ def send(id_product: int=Form(...),id_provider: int=Form(...),invoice: Optional[
 def get_mails(db:Session=Depends(get_db)):
     query=text("SELECT s.ID,s.Created_at,s.Subject_Email,s.Provider_Email,prod.Product_Name,prov.Provider_Name FROM SENT s " \
     "INNER JOIN PRODUCT prod on s.ID_Product=prod.ID " \
-    "INNER JOIN PROVIDER prov on s.ID_Provider=prov.ID")
+    "INNER JOIN PROVIDER prov on s.ID_Provider=prov.ID " \
+    "ORDER BY s.Created_at")
     all_sent=db.execute(query).fetchall()
     all_sent_list=[]
     if len(all_sent)>0:

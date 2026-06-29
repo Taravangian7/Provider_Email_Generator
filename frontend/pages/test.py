@@ -1,2 +1,0 @@
-elton={}
-print(elton[None])
