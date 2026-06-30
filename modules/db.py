@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 DATABASE_URL = os.getenv("DATABASE_URL") #Cargo mi url de conexión
 engine = create_engine(DATABASE_URL) #Creo standard de comunicación con postgre
 SessionLocal = sessionmaker(bind=engine) #Establece una session en postgre
