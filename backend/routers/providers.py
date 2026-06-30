@@ -1,10 +1,11 @@
-from fastapi import Depends, APIRouter, HTTPException
+from fastapi import Depends, APIRouter, HTTPException, UploadFile,File
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from modules.db import get_db
 from modules.exceptions import handle_integrity_error
 from sqlalchemy import text
 from backend.models.models import ProviderCreate,ProviderResponse,TemplateCreate,TemplateResponse,ProductResponse
+import pandas as pd
 
 router = APIRouter()
 
@@ -20,7 +21,7 @@ def providers(db: Session=Depends(get_db)):
 def new_provider(provider:ProviderCreate,db: Session=Depends(get_db)):
     query=text("INSERT INTO PROVIDER (Provider_Name,Email) VALUES (:provider_name, :email) RETURNING ID, Provider_Name, Email;")
     try:
-        insert_provider=db.execute(query,{"provider_name":provider.provider_name,"email":provider.email}).fetchone()
+        insert_provider=db.execute(query,{"provider_name":provider.provider_name.strip().title(),"email":provider.email.strip().lower()}).fetchone()
         db.commit()
     except IntegrityError as e:
         db.rollback()
@@ -32,7 +33,7 @@ def new_provider(provider:ProviderCreate,db: Session=Depends(get_db)):
 def modify_provider(id:int, provider:ProviderCreate,db: Session=Depends(get_db)):
     query=text("UPDATE PROVIDER SET Provider_Name = :provider_name, Email = :email WHERE ID = :id RETURNING ID, Provider_Name, Email;")
     try:
-        update_provider=db.execute(query,{"provider_name":provider.provider_name,"email":provider.email,"id":id}).fetchone()
+        update_provider=db.execute(query,{"provider_name":provider.provider_name.strip().title(),"email":provider.email.strip().lower(),"id":id}).fetchone()
         db.commit()
     except IntegrityError as e:
         db.rollback()
@@ -73,7 +74,7 @@ def templates(id:int, db: Session=Depends(get_db)):
 def new_template(id:int, template:TemplateCreate,db: Session=Depends(get_db)):
     query=text("INSERT INTO PROVIDER_TEMPLATE (ID_Provider,Template_Name,Mail_Template) VALUES (:id,:template_name,:mail_template) RETURNING ID, Template_Name, Mail_Template;")
     try:
-        insert_template=db.execute(query,{"id":id,"template_name":template.template_name,"mail_template":template.template_body}).fetchone()
+        insert_template=db.execute(query,{"id":id,"template_name":template.template_name.strip().title(),"mail_template":template.template_body}).fetchone()
         db.commit()
     except IntegrityError as e:
         db.rollback()
@@ -85,7 +86,7 @@ def new_template(id:int, template:TemplateCreate,db: Session=Depends(get_db)):
 def modify_template(id:int,id_template:int,template:TemplateCreate,db: Session=Depends(get_db)):
     query=text("UPDATE PROVIDER_TEMPLATE SET Template_Name = :template_name, Mail_Template = :mail_template WHERE ID = :id RETURNING Template_Name, Mail_Template;")
     try:
-        update_template=db.execute(query,{"template_name":template.template_name,"mail_template":template.template_body,"id":id_template}).fetchone()
+        update_template=db.execute(query,{"template_name":template.template_name.strip().title(),"mail_template":template.template_body,"id":id_template}).fetchone()
         db.commit()
     except IntegrityError as e:
         db.rollback()
@@ -125,3 +126,44 @@ def products(id:int,db: Session=Depends(get_db)):
     for row in provider_products:
         product_list.append(ProductResponse(id=row._mapping["id"],product_name=row._mapping["product_name"],serial_number=row._mapping["serial_number"],id_brand=row._mapping["id_brand"],brand_name=row._mapping["brand_name"]))
     return product_list
+
+#bulk insert
+@router.post("/providers/bulk-insert",response_model=bool)
+def new_provider_bulk(provider_excel:UploadFile=File(...),db: Session=Depends(get_db)):
+    try:
+        df=pd.read_excel(provider_excel.file)
+    except:
+        raise HTTPException(status_code=400, detail="El archivo no es un Excel válido")
+    if "Proveedor" not in df.columns or "Email" not in df.columns:
+        raise HTTPException(
+            status_code=400,
+            detail="El excel debe contener la columna Proveedor y Email"
+        )
+    if df.empty:
+        raise HTTPException(
+            status_code=400,
+            detail="El excel está vacío"
+        )
+    try:    
+        providers=[]
+        for _,provider in df.iterrows():
+            new_provider=ProviderCreate(provider_name=provider["Proveedor"],email=provider["Email"])
+            providers.append(new_provider)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error procesando excel: {str(e)}"
+        )
+    
+    query = text("""
+        INSERT INTO PROVIDER (Provider_Name,Email)
+        VALUES (:provider_name,:email)
+    """)
+    providers_data = [{"provider_name": provider.provider_name.strip().title(),"email":provider.email.strip().lower()} for provider in providers]
+    try:
+        db.execute(query, providers_data)
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        raise handle_integrity_error(e)
+    return True

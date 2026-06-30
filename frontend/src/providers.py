@@ -56,6 +56,44 @@ def confirm_delete(id, name):
     if col2.button("Cancelar"):
         st.rerun()
 
+#Carga masiva excel
+@st.dialog("Carga Masiva")
+def provider_excel_upload():
+    st.markdown("""
+    ### 📋 Formato requerido del Excel
+
+    Antes de subir el archivo, verificá que:
+
+    · La primera fila contenga los encabezados  
+    · Existan las columnas **Proveedor y Email**
+
+    Ejemplo:
+
+    | Proveedor | Email |
+    |---|---|
+    | Sony Central | centralsony@gmail.com |
+    | Tecno SRL | srltecno@outlook.com |
+    """)
+    excel_file_provider = st.file_uploader("Subir Excel", type=["xlsx"])
+    col1,col_empty,col2 = st.columns([4,4,3])
+    if col1.button("Cargar Proveedores", type="primary"):
+        if not excel_file_provider:
+            st.error("Debe cargarse un excel")
+        else:
+            excel_file_bytes = excel_file_provider.read()
+            send_file={"provider_excel": excel_file_bytes}
+            response = requests.post(f"{API_URL}/providers/bulk-insert",files=send_file,headers=headers)
+            if response.status_code==200:
+                st.success("Proveedores Agregados")
+                time.sleep(0.5)
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                error=response.json()["detail"]
+                st.error(error)
+    if col2.button("Cancelar"):
+        st.rerun()
+
 with st.spinner("Cargando..."):
     providers_data=get_providers()
     
@@ -80,6 +118,10 @@ if submit:
         else:
             error=response.json()["detail"]
             st.error(error)
+
+st.caption("Carga Masiva")    
+if st.button(label="Carga masiva con excel"):
+    provider_excel_upload()  
 
 st.title("Gestionar Proveedores")
 #providers_data=get_providers()

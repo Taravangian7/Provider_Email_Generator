@@ -6,6 +6,7 @@ from modules.storage import upload_file,delete_cloudinary_file
 from modules.exceptions import handle_integrity_error
 from sqlalchemy import text
 from backend.models.models import ProductCreate,ProductResponse,ProviderResponse,ProductProviderCreate,ProductFileResponse
+import pandas as pd
 
 router = APIRouter()
 
@@ -37,7 +38,7 @@ def new_product(product:ProductCreate,db: Session=Depends(get_db)):
     "SELECT New_Product.ID,New_Product.Product_Name,New_Product.Serial_Number,New_Product.ID_Brand,b.Brand_Name FROM New_Product " \
     "INNER JOIN BRAND b on New_Product.ID_Brand = b.ID")
     try:
-        insert_product=db.execute(query,{"product_name":product.product_name,"serial_number":product.serial_number,"id_brand":product.id_brand}).fetchone()
+        insert_product=db.execute(query,{"product_name":product.product_name.strip().title(),"serial_number":product.serial_number.strip().upper(),"id_brand":product.id_brand}).fetchone()
         db.commit()
     except IntegrityError as e:
         db.rollback()
@@ -51,7 +52,7 @@ def modify_product(id:int, product:ProductCreate,db: Session=Depends(get_db)):
     "SELECT Modify_Product.Product_Name,Modify_Product.Serial_Number,Modify_Product.ID_Brand,b.Brand_Name FROM Modify_Product " \
     "INNER JOIN BRAND b on Modify_Product.ID_Brand = b.ID")
     try:
-        update_product=db.execute(query,{"product_name":product.product_name,"serial_number":product.serial_number,"id_brand":product.id_brand,"id_product":id}).fetchone()
+        update_product=db.execute(query,{"product_name":product.product_name.strip().title(),"serial_number":product.serial_number.strip().upper(),"id_brand":product.id_brand,"id_product":id}).fetchone()
         db.commit()
     except IntegrityError as e:
         db.rollback()
@@ -169,3 +170,57 @@ def delete_file(id:int,id_file:int,db: Session=Depends(get_db)):
     delete_cloudinary_file(file_path)
     file=ProductFileResponse(id_file=id_file,id_product=id,file_path=file_path,file_type=deleted_file._mapping["file_type"])    
     return file
+
+#bulk insert
+@router.post("/products/bulk-insert",response_model=bool)
+def new_product_bulk(product_excel:UploadFile=File(...),db: Session=Depends(get_db)):
+    try:
+        df=pd.read_excel(product_excel.file)
+    except:
+        raise HTTPException(status_code=400, detail="El archivo no es un Excel válido")
+    if "Producto" not in df.columns or "Marca" not in df.columns or "Serial Number" not in df.columns:
+        raise HTTPException(
+            status_code=400,
+            detail="El excel debe contener la columna Producto, Marca y Serial Number"
+        )
+    if df.empty:
+        raise HTTPException(
+            status_code=400,
+            detail="El excel está vacío"
+        )
+    try:    
+        all_brands=db.execute(text("Select ID,Brand_Name From BRAND")).fetchall()
+        brand_list= {}
+        for row in all_brands:
+            brand_list[row._mapping["brand_name"]]= row._mapping["id"]
+        products=[]
+        for _,product in df.iterrows():
+            marca = product["Marca"].strip().title()
+            if marca not in brand_list:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"La marca '{marca}' no existe en el sistema"
+                )
+            id_brand = brand_list[marca]
+            new_product=ProductCreate(product_name=product["Producto"],serial_number=str(product["Serial Number"]),id_brand=id_brand)
+            products.append(new_product)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Error procesando excel: {str(e)}"
+        )
+    
+    query = text("""
+        INSERT INTO PRODUCT (Product_Name,Serial_Number,ID_Brand)
+        VALUES (:product_name,:serial_number,:id_brand)
+    """)
+    products_data = [{"product_name": product.product_name.strip().title(), "serial_number":product.serial_number,"id_brand":product.id_brand} for product in products]
+    try:
+        db.execute(query, products_data)
+        db.commit()
+    except IntegrityError as e:
+        db.rollback()
+        raise handle_integrity_error(e)
+    return True

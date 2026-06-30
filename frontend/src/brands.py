@@ -51,6 +51,45 @@ def confirm_delete(id, name):
             st.error(deleted_brand.json()["detail"])
     if col2.button("Cancelar"):
         st.rerun()
+
+#Carga masiva excel
+@st.dialog("Carga Masiva")
+def brand_excel_upload():
+    st.markdown("""
+    ### 📋 Formato requerido del Excel
+
+    Antes de subir el archivo, verificá que:
+
+    · La primera fila contenga los encabezados  
+    · Exista una columna llamada **Marca**
+
+    Ejemplo:
+
+    | Marca |
+    |---|
+    | Nike |
+    | Adidas |
+    """)
+    excel_file_brand = st.file_uploader("Subir Excel", type=["xlsx"])
+    col1,col_empty,col2 = st.columns([4,4,3])
+    if col1.button("Cargar Marcas", type="primary"):
+        if not excel_file_brand:
+            st.error("Debe cargarse un excel")
+        else:
+            excel_file_bytes = excel_file_brand.read()
+            send_file={"brand_excel": excel_file_bytes}
+            response = requests.post(f"{API_URL}/brands/bulk-insert",files=send_file,headers=headers)
+            if response.status_code==200:
+                st.success("Marcas Agregadas")
+                time.sleep(0.5)
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                error=response.json()["detail"]
+                st.error(error)
+    if col2.button("Cancelar"):
+        st.rerun()
+
 #Hago todos los gets acá así me carga toda la página a la vez
 with st.spinner("Cargando..."):
     brands_data=get_brands()
@@ -72,6 +111,10 @@ if submit:
         else:
             error=response.json()["detail"]
             st.error(error)
+
+st.caption("Carga Masiva")    
+if st.button(label="Carga masiva con excel"):
+    brand_excel_upload()       
 
 st.title("Gestionar Marcas")
 search = st.text_input("Buscar marca", placeholder="Escribí un nombre...")

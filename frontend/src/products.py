@@ -15,6 +15,44 @@ with st.sidebar:
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
+@st.dialog("Carga Masiva")
+def product_excel_upload():
+    st.markdown("""
+    ### 📋 Formato requerido del Excel
+
+    Antes de subir el archivo, verificá que:
+
+    · La primera fila contenga los encabezados  
+    · Existan las columnas **Producto, Serial Number y Marca**  
+    · Las Marcas ingresadas ya existan en el sistema
+
+    Ejemplo:
+
+    | Producto | Serial Number | Marca
+    |---|---|---|
+    | Televisor | D5DS56ASD | LG |
+    | Teléfono | JH54546JH | Samsung |
+    """)
+    excel_file_product = st.file_uploader("Subir Excel", type=["xlsx"])
+    col1,col_empty,col2 = st.columns([4,4,3])
+    if col1.button("Cargar Marcas", type="primary"):
+        if not excel_file_product:
+            st.error("Debe cargarse un excel")
+        else:
+            excel_file_bytes = excel_file_product.read()
+            send_file={"product_excel": excel_file_bytes}
+            response = requests.post(f"{API_URL}/products/bulk-insert",files=send_file,headers=headers)
+            if response.status_code==200:
+                st.success("Productos Agregados")
+                time.sleep(0.5)
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                error=response.json()["detail"]
+                st.error(error)
+    if col2.button("Cancelar"):
+        st.rerun()
+
 if st.session_state.get("last_page") != "products":
     if st.session_state.get("selected_product_id"):
         del st.session_state["selected_product_id"]
@@ -65,7 +103,7 @@ if st.session_state.get("selected_product_id"):
 
     st.title("Gestionar proveedores")
 
-    with st.form("Ingresar nuevo Producto"):
+    with st.form("Ingresar nuevo Proveedor"):
         provider_options = {b["provider_name"]: b["id"] for b in providers_data}
         st.write(f"Producto: **{st.session_state.get("selected_product_name")}** ({st.session_state.get("selected_product_brand")})")
         selected_provider = st.selectbox(
@@ -219,11 +257,19 @@ else:
             if response.status_code==200:
                 st.success("Producto agregado")
                 time.sleep(0.5)
+                data=response.json()
+                st.session_state["selected_product_id"]=data["id"]
+                st.session_state["selected_product_name"] = data["product_name"]
+                st.session_state["selected_product_brand"] = data["brand_name"]
                 st.cache_data.clear()
                 st.rerun()
             else:
                 error=response.json()["detail"]
                 st.error(error)
+
+    st.caption("Carga Masiva")    
+    if st.button(label="Carga masiva con excel"):
+        product_excel_upload() 
 
     st.title("Gestionar Producto")
 
