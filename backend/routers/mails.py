@@ -62,9 +62,8 @@ def send(id_product: int=Form(...),id_provider: int=Form(...),invoice: Optional[
     excel_bytes=excel.file.read() if excel else None
     try:
         send_mail(to_email=to_email,subject=mail.subject,body=mail.body_content,image_urls=image_urls,excel_bytes=excel_bytes)
-    except:
-        raise HTTPException(status_code=400,
-                            detail="Error al enviar mail")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
     try:
         query=text("INSERT INTO SENT (ID_Product,ID_Provider,Provider_Email,Invoice,Case_Type,Subject_Email,Body_Content) VALUES(:id_product,:id_provider,:provider_email,:invoice,:case_type,:subject,:body) RETURNING ID,Created_at")
         sent=db.execute(query,{"id_product":mail.id_product,"id_provider":mail.id_provider,"provider_email":to_email,"invoice":mail.invoice,"case_type":mail.case_type,"subject":mail.subject,"body":mail.body_content}).fetchone()
