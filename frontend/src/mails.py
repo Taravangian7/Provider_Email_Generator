@@ -147,5 +147,8 @@ if st.session_state.get("preview_data"):
                 clear_preview()
                 st.rerun()
             else:
-                error=sent.json()["detail"]
+                try:
+                    error=sent.json()["detail"]
+                except:
+                    error = f"Error al enviar mail (status {sent.status_code})"
                 st.error(error)
