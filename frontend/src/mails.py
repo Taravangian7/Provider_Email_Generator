@@ -81,12 +81,15 @@ if selected_provider:
                 product_id=product_options[selected_product]
                 template_id=template_options[selected_template][0]
                 provider_id=provider_options[selected_provider]
-                response=requests.post(f"{API_URL}/mail/preview",json={"id_product":product_id,"id_provider":provider_id,"id_template":template_id,"invoice":invoice,"case_type":case_type,"file_ids":None},headers=headers)
-                if response.status_code==200:
-                    st.session_state["preview_data"]=response.json()
-                else:
-                    error=response.json()["detail"]
-                    st.error(error)
+                try:
+                    response=requests.post(f"{API_URL}/mail/preview",json={"id_product":product_id,"id_provider":provider_id,"id_template":template_id,"invoice":invoice,"case_type":case_type,"file_ids":None},headers=headers)
+                    if response.status_code==200:
+                        st.session_state["preview_data"]=response.json()
+                    else:
+                        error=response.json()["detail"]
+                        st.error(error)
+                except:
+                    st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 if st.session_state.get("preview_data"):
     with st.form(f"enviar email {selected_provider}"):
         preview = st.session_state["preview_data"]
@@ -139,16 +142,15 @@ if st.session_state.get("preview_data"):
                 send_file={"excel": excel_file_bytes}
             else:
                 send_file= None
-            sent=requests.post(f"{API_URL}/mail/send",data={"id_product":preview['id_product'],"id_provider":preview['id_provider'],"invoice":preview['invoice'],"case_type":preview["case_type"],"body_content":body_final,"subject":subject,"to_email":preview["to_email"],"image_urls":image_urls},files=send_file ,headers=headers)
-            if sent.status_code==200:
-                st.success("Mail enviado")
-                st.session_state["form_key_send"] += 1 #Al enviar mail, queda preseleccionado el provider pero resetea form
-                time.sleep(0.5)
-                clear_preview()
-                st.rerun()
-            else:
-                try:
+            try:
+                sent=requests.post(f"{API_URL}/mail/send",data={"id_product":preview['id_product'],"id_provider":preview['id_provider'],"invoice":preview['invoice'],"case_type":preview["case_type"],"body_content":body_final,"subject":subject,"to_email":preview["to_email"],"image_urls":image_urls},files=send_file ,headers=headers)
+                if sent.status_code==200:
+                    st.success("Mail enviado")
+                    st.session_state["form_key_send"] += 1 #Al enviar mail, queda preseleccionado el provider pero resetea form
+                    time.sleep(0.5)
+                    clear_preview()
+                    st.rerun()
+                else:
                     error=sent.json()["detail"]
-                except:
-                    error = f"Error al enviar mail (status {sent.status_code})"
-                st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")

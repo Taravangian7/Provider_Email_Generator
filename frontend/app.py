@@ -25,14 +25,20 @@ pages = [
 #Si tengo el token en las coockies del navegador se lo paso al state de streamlit.
 if not st.session_state.get("token"):
     with st.spinner(""):
-        if "initialized" not in st.session_state:
-            st.session_state["initialized"] = True
-            time.sleep(1)
-            st.rerun()
+        #if "initialized" not in st.session_state:
+        #    st.session_state["initialized"] = True
+        #    time.sleep(1)
+        #    st.rerun()
         token = controller.get("token")
         if token:
             st.session_state["token"] = token
         else:
+            retries= st.session_state.get("cookie_retries",0)
+            if retries<3:
+                st.session_state["cookie_retries"]=retries+1
+                time.sleep(1)
+                st.rerun()
+                st.stop()
             pg = st.navigation(pages, position="hidden")
             st.markdown("""
                 <style>
@@ -61,14 +67,17 @@ if not st.session_state.get("token"):
         if not user or not password:
             st.error("Ingresar usuario y contraseña")
         else:
-            response = requests.post(f"{API_URL}/auth/login",data={"username": user, "password": password})
-            if response.status_code==200:
-                token=response.json()["access_token"]
-                save_token(token=token)
-                st.rerun()
-            else:
-                error=response.json()["detail"]
-                st.error(error)
+            try:
+                response = requests.post(f"{API_URL}/auth/login",data={"username": user, "password": password})
+                if response.status_code==200:
+                    token=response.json()["access_token"]
+                    save_token(token=token)
+                    st.rerun()
+                else:
+                    error=response.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     st.stop()
 
 # Si hay token, mostrar navegación

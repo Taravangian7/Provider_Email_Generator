@@ -42,49 +42,78 @@ def get_headers():
 def get_brands():
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/brands", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/brands", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
 
 #Guardo en Caché todas los proveedores
 @st.cache_data(ttl=30, show_spinner=False)
 def get_providers():
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/providers", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/providers", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
+
 
 #Guardo en Caché todos los productos
 @st.cache_data(ttl=30, show_spinner=False)
 def get_products():
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/products", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/products", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
 
 #Guardo en Caché todas las plantillas
 @st.cache_data(ttl=30, show_spinner=False)
 def get_templates(id:int):
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/providers/{id}/templates", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/providers/{id}/templates", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
 
 #Guardo en Caché todos los proveedores asociados a un producto
 @st.cache_data(ttl=30, show_spinner=False)
 def get_product_providers(id_product):
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/products/{id_product}/providers", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/products/{id_product}/providers", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
 
 #Guardo en Caché todos los productos asociados a un proveedor
 @st.cache_data(ttl=30, show_spinner=False)
 def get_provider_products(id_provider):
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/providers/{id_provider}/products", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/providers/{id_provider}/products", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
 
 #Guardo en Caché todas las imágenes
 @st.cache_data(ttl=30, show_spinner=False)
 def get_product_files(id_product):
     load_dotenv()
     API_URL = os.getenv("API_URL", "http://localhost:8000")
-    return requests.get(f"{API_URL}/products/{id_product}/files", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/products/{id_product}/files", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
 
 #Validar formato Email
 def validate_email(email:str)->bool:

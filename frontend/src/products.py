@@ -41,15 +41,18 @@ def product_excel_upload():
         else:
             excel_file_bytes = excel_file_product.read()
             send_file={"product_excel": excel_file_bytes}
-            response = requests.post(f"{API_URL}/products/bulk-insert",files=send_file,headers=headers)
-            if response.status_code==200:
-                st.success("Productos Agregados")
-                time.sleep(0.5)
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                error=response.json()["detail"]
-                st.error(error)
+            try:
+                response = requests.post(f"{API_URL}/products/bulk-insert",files=send_file,headers=headers)
+                if response.status_code==200:
+                    st.success("Productos Agregados")
+                    time.sleep(0.5)
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    error=response.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     if col2.button("Cancelar"):
         st.rerun()
 
@@ -71,12 +74,15 @@ if st.session_state.get("selected_product_id"):
         st.write(f"¿Estás seguro que querés desasociar al proveedor: **{provider_name}**?")
         col1, col2 = st.columns(2)
         if col1.button("Sí, desasociar", type="primary"):
-            deleted_provider = requests.delete(f"{API_URL}/products/{id_product}/providers/{id_provider}", headers=headers)
-            if deleted_provider.status_code == 200:
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                st.error(deleted_provider.json()["detail"])
+            try:
+                deleted_provider = requests.delete(f"{API_URL}/products/{id_product}/providers/{id_provider}", headers=headers)
+                if deleted_provider.status_code == 200:
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error(deleted_provider.json()["detail"])
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
         if col2.button("Cancelar"):
             st.rerun()
 
@@ -86,12 +92,15 @@ if st.session_state.get("selected_product_id"):
         st.write(f"¿Estás seguro que querés eliminar esta foto?")
         col1, col2 = st.columns(2)
         if col1.button("Sí, eliminar", type="primary"):
-            deleted_file = requests.delete(f"{API_URL}/products/{id_product}/files/{id_file}", headers=headers)
-            if deleted_file.status_code == 200:
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                st.error(deleted_file.json()["detail"])
+            try:
+                deleted_file = requests.delete(f"{API_URL}/products/{id_product}/files/{id_file}", headers=headers)
+                if deleted_file.status_code == 200:
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error(deleted_file.json()["detail"])
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
         if col2.button("Cancelar"):
             st.rerun()
 
@@ -118,15 +127,18 @@ if st.session_state.get("selected_product_id"):
             st.error("Selecciona un proveedor")
         else:
             id_provider=provider_options[selected_provider]
-            response = requests.post(f"{API_URL}/products/{product_id}/providers",json={"id_provider": id_provider},headers=headers)
-            if response.status_code==200:
-                st.success("Proveedor asociado")
-                time.sleep(0.5)
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                error=response.json()["detail"]
-                st.error(error)
+            try:
+                response = requests.post(f"{API_URL}/products/{product_id}/providers",json={"id_provider": id_provider},headers=headers)
+                if response.status_code==200:
+                    st.success("Proveedor asociado")
+                    time.sleep(0.5)
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    error=response.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     # Headers
     col1, col2, col3 = st.columns([4,4,1])
     col1.markdown("<p style='color: gray; font-size: 12px; margin: 0;'>PROVEEDOR</p>", unsafe_allow_html=True)
@@ -151,16 +163,19 @@ if st.session_state.get("selected_product_id"):
         if uploaded_file is None:
             st.error("Selecciona un archivo")
         else:
-            response = requests.post(f"{API_URL}/products/{product_id}/files",files={"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)},headers=headers)
-            if response.status_code==200:
-                st.success("Foto cargada correctamente")
-                st.session_state["uploaded_foto"]+=1
-                time.sleep(0.5)
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                error=response.json()["detail"]
-                st.error(error)
+            try:
+                response = requests.post(f"{API_URL}/products/{product_id}/files",files={"file": (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)},headers=headers)
+                if response.status_code==200:
+                    st.success("Foto cargada correctamente")
+                    st.session_state["uploaded_foto"]+=1
+                    time.sleep(0.5)
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    error=response.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
     # Headers
     col1, col2, col3 = st.columns([4,4,1])
@@ -202,14 +217,17 @@ else:
                 st.error("Debe ingresar un serial number")
             else:
                 id_brand=brand_options[selected_brand]
-                edited_product=requests.put(f"{API_URL}/products/{id}",json={"product_name":new_name,"serial_number":new_serial,"id_brand":id_brand},headers=headers)
-                if edited_product.status_code==200:
-                    #st.success("Se ha modificado el Producto")
-                    st.cache_data.clear()
-                    st.rerun()
-                else:
-                    error=edited_product.json()["detail"]
-                    st.error(error)
+                try:
+                    edited_product=requests.put(f"{API_URL}/products/{id}",json={"product_name":new_name,"serial_number":new_serial,"id_brand":id_brand},headers=headers)
+                    if edited_product.status_code==200:
+                        #st.success("Se ha modificado el Producto")
+                        st.cache_data.clear()
+                        st.rerun()
+                    else:
+                        error=edited_product.json()["detail"]
+                        st.error(error)
+                except:
+                    st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
     #Confirmar borrar producto
     @st.dialog("Confirmar eliminación")
@@ -217,12 +235,15 @@ else:
         st.write(f"¿Estás seguro que querés eliminar el producto: **{name}**?")
         col1, col2 = st.columns(2)
         if col1.button("Sí, eliminar", type="primary"):
-            deleted_product = requests.delete(f"{API_URL}/products/{id}", headers=headers)
-            if deleted_product.status_code == 200:
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                st.error(deleted_product.json()["detail"])
+            try:
+                deleted_product = requests.delete(f"{API_URL}/products/{id}", headers=headers)
+                if deleted_product.status_code == 200:
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error(deleted_product.json()["detail"])
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
         if col2.button("Cancelar"):
             st.rerun()
 
@@ -253,19 +274,22 @@ else:
             st.error("Debe ingresar un serial number")
         else:
             id_brand=brand_options[selected_brand]
-            response = requests.post(f"{API_URL}/products",json={"product_name": product_name,"serial_number":serial_number,"id_brand":id_brand},headers=headers)
-            if response.status_code==200:
-                st.success("Producto agregado")
-                time.sleep(0.5)
-                data=response.json()
-                st.session_state["selected_product_id"]=data["id"]
-                st.session_state["selected_product_name"] = data["product_name"]
-                st.session_state["selected_product_brand"] = data["brand_name"]
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                error=response.json()["detail"]
-                st.error(error)
+            try:
+                response = requests.post(f"{API_URL}/products",json={"product_name": product_name,"serial_number":serial_number,"id_brand":id_brand},headers=headers)
+                if response.status_code==200:
+                    st.success("Producto agregado")
+                    time.sleep(0.5)
+                    data=response.json()
+                    st.session_state["selected_product_id"]=data["id"]
+                    st.session_state["selected_product_name"] = data["product_name"]
+                    st.session_state["selected_product_brand"] = data["brand_name"]
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    error=response.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
     st.caption("Carga Masiva")    
     if st.button(label="Carga masiva con excel"):

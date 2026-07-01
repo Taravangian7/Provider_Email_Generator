@@ -29,13 +29,16 @@ def edit_brand(id,name):
             if new_name==name:
                 st.rerun()
             else:
-                edited_brand=requests.put(f"{API_URL}/brands/{id}",json={"brand_name":new_name},headers=headers)
-                if edited_brand.status_code==200:
-                    st.cache_data.clear()
-                    st.rerun()
-                else:
-                    error=edited_brand.json()["detail"]
-                    st.error(error)
+                try:
+                    edited_brand=requests.put(f"{API_URL}/brands/{id}",json={"brand_name":new_name},headers=headers)
+                    if edited_brand.status_code==200:
+                        st.cache_data.clear()
+                        st.rerun()
+                    else:
+                        error=edited_brand.json()["detail"]
+                        st.error(error)
+                except:
+                    st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
 #Confirmar borrar marca
 @st.dialog("Confirmar eliminación")
@@ -43,12 +46,15 @@ def confirm_delete(id, name):
     st.write(f"¿Estás seguro que querés eliminar **{name}**?")
     col1, col2 = st.columns(2)
     if col1.button("Sí, eliminar", type="primary"):
-        deleted_brand = requests.delete(f"{API_URL}/brands/{id}", headers=headers)
-        if deleted_brand.status_code == 200:
-            st.cache_data.clear()
-            st.rerun()
-        else:
-            st.error(deleted_brand.json()["detail"])
+        try:
+            deleted_brand = requests.delete(f"{API_URL}/brands/{id}", headers=headers)
+            if deleted_brand.status_code == 200:
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                st.error(deleted_brand.json()["detail"])
+        except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     if col2.button("Cancelar"):
         st.rerun()
 
@@ -78,15 +84,18 @@ def brand_excel_upload():
         else:
             excel_file_bytes = excel_file_brand.read()
             send_file={"brand_excel": excel_file_bytes}
-            response = requests.post(f"{API_URL}/brands/bulk-insert",files=send_file,headers=headers)
-            if response.status_code==200:
-                st.success("Marcas Agregadas")
-                time.sleep(0.5)
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                error=response.json()["detail"]
-                st.error(error)
+            try:
+                response = requests.post(f"{API_URL}/brands/bulk-insert",files=send_file,headers=headers)
+                if response.status_code==200:
+                    st.success("Marcas Agregadas")
+                    time.sleep(0.5)
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    error=response.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     if col2.button("Cancelar"):
         st.rerun()
 
@@ -102,15 +111,18 @@ if submit:
     if not brand_name.strip():
         st.error("Debe ingresar un nombre de marca")
     else:
-        response = requests.post(f"{API_URL}/brands",json={"brand_name": brand_name},headers=headers)
-        if response.status_code==200:
-            st.success("Marca agregada")
-            time.sleep(0.5)
-            st.cache_data.clear()
-            st.rerun()
-        else:
-            error=response.json()["detail"]
-            st.error(error)
+        try:
+            response = requests.post(f"{API_URL}/brands",json={"brand_name": brand_name},headers=headers)
+            if response.status_code==200:
+                st.success("Marca agregada")
+                time.sleep(0.5)
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                error=response.json()["detail"]
+                st.error(error)
+        except:
+            st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
 st.caption("Carga Masiva")    
 if st.button(label="Carga masiva con excel"):

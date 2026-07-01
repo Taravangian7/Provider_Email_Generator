@@ -52,14 +52,16 @@ def new_template(provider_id):
     body = st.text_area("Cuerpo del mail", key="template_body", height=200)
     commit_template=st.button(label="Guardar",key="save_template")
     if commit_template:
-        save_template=requests.post(f"{API_URL}/providers/{provider_id}/templates",json={"template_name":template_name,"template_body":body},headers=headers)
-        if save_template.status_code==200:
-            st.cache_data.clear()
-            st.rerun()
-        else:
-            error=save_template.json()["detail"]
-            st.error(error)
-
+        try:
+            save_template=requests.post(f"{API_URL}/providers/{provider_id}/templates",json={"template_name":template_name,"template_body":body},headers=headers)
+            if save_template.status_code==200:
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                error=save_template.json()["detail"]
+                st.error(error)
+        except:
+            st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 #Editar Template
 @st.dialog("Editar Plantilla")
 def edit_template(old_body,old_template_name,id_provider,id_template):
@@ -89,13 +91,16 @@ def edit_template(old_body,old_template_name,id_provider,id_template):
         if (template_name==old_template_name and body==old_body):
             st.rerun()
         else:
-            save_template=requests.put(f"{API_URL}/providers/{id_provider}/templates/{id_template}",json={"template_name":template_name,"template_body":body},headers=headers)
-            if save_template.status_code==200:
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                error=save_template.json()["detail"]
-                st.error(error)
+            try:
+                save_template=requests.put(f"{API_URL}/providers/{id_provider}/templates/{id_template}",json={"template_name":template_name,"template_body":body},headers=headers)
+                if save_template.status_code==200:
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    error=save_template.json()["detail"]
+                    st.error(error)
+            except:
+                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
 #Confirmar borrar template
 @st.dialog("Confirmar eliminación")
@@ -103,12 +108,15 @@ def confirm_delete(id_provider,id_template, name):
     st.write(f"¿Estás seguro que querés eliminar el template **{name}**?")
     col1, col2 = st.columns(2)
     if col1.button("Sí, eliminar", type="primary"):
-        deleted_template = requests.delete(f"{API_URL}/providers/{id_provider}/templates/{id_template}", headers=headers)
-        if deleted_template.status_code == 200:
-            st.cache_data.clear()
-            st.rerun()
-        else:
-            st.error(deleted_template.json()["detail"])
+        try:
+            deleted_template = requests.delete(f"{API_URL}/providers/{id_provider}/templates/{id_template}", headers=headers)
+            if deleted_template.status_code == 200:
+                st.cache_data.clear()
+                st.rerun()
+            else:
+                st.error(deleted_template.json()["detail"])
+        except:
+            st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     if col2.button("Cancelar"):
         st.rerun()
 

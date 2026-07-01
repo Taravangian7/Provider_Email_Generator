@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import logout,get_headers,get_brands
+from utils.functions import logout,get_headers
 from datetime import datetime
 
 #Aumento el ancho de esta página
@@ -32,7 +32,12 @@ API_URL = os.getenv("API_URL", "http://localhost:8000")
 #Obtengo histórico y guardo en caché
 @st.cache_data(ttl=30, show_spinner=False)
 def get_historical():
-    return requests.get(f"{API_URL}/mail/sent", headers=get_headers()).json()
+    try:
+        response=requests.get(f"{API_URL}/mail/sent", headers=get_headers()).json()
+    except:
+        response=[]
+    return response
+
 
 with st.spinner("Cargando..."):
     mails=get_historical()
