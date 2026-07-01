@@ -2,8 +2,12 @@ import streamlit as st
 import requests
 import os
 from dotenv import load_dotenv
-from utils.functions import save_token,controller,is_token_expired
-import time
+#from utils.functions import save_token,controller,is_token_expired
+try:
+    from utils.functions import save_token, controller, is_token_expired
+except Exception:
+    st.rerun()
+    st.stop()
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
