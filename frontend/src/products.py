@@ -291,7 +291,7 @@ else:
             except:
                 st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
 
-    st.caption("Carga Masiva")    
+    st.markdown("<p style='font-size:0.75rem; color:#555; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;'>Carga masiva</p>", unsafe_allow_html=True)  
     if st.button(label="Carga masiva con excel"):
         product_excel_upload() 
 

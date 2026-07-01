@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import time
 #Lo hago con try/excepto para evitar que en la primera carga salga pantalla de error (no llega a cargar modulos antes de renderizar)
 try:
-    from utils.functions import save_token, controller, is_token_expired
+    from utils.functions import save_token, controller, is_token_expired,get_providers
 except Exception:
     st.rerun()
     st.stop()
@@ -120,6 +120,11 @@ if st.session_state.get("token") and is_token_expired():
     st.rerun()
 
 if not st.session_state.get("token"):
+    #Despierto el back:
+    try:
+        get_providers()
+    except:
+        pass
     st.title("Mensajería Automática")
     with st.form("login_form"):
         user = st.text_input("Usuario")
