@@ -118,7 +118,7 @@ if st.session_state.get("token") and is_token_expired():
 if not st.session_state.get("token"):
     #Despierto el back:
     try:
-        requests.get(f"{API_URL}/health", timeout=1)
+        requests.get(f"{API_URL}/health", timeout=10)
     except:
         pass
     st.title("Mensajería Automática")
