@@ -59,7 +59,6 @@ def get_providers():
         response=[]
     return response
 
-
 #Guardo en Caché todos los productos
 @st.cache_data(ttl=30, show_spinner=False)
 def get_products():

@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import time
 #Lo hago con try/excepto para evitar que en la primera carga salga pantalla de error (no llega a cargar modulos antes de renderizar)
 try:
-    from utils.functions import save_token, controller, is_token_expired,get_providers
+    from utils.functions import save_token, controller, is_token_expired
 except Exception:
     st.rerun()
     st.stop()
@@ -87,10 +87,6 @@ pages = [
 #Si tengo el token en las coockies del navegador se lo paso al state de streamlit.
 if not st.session_state.get("token"):
     with st.spinner(""):
-        #if "initialized" not in st.session_state:
-        #    st.session_state["initialized"] = True
-        #    time.sleep(1)
-        #    st.rerun()
         token = controller.get("token")
         if token:
             st.session_state["token"] = token
@@ -122,7 +118,7 @@ if st.session_state.get("token") and is_token_expired():
 if not st.session_state.get("token"):
     #Despierto el back:
     try:
-        get_providers()
+        requests.get(f"{API_URL}/health", timeout=1)
     except:
         pass
     st.title("Mensajería Automática")

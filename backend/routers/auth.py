@@ -15,3 +15,8 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     else:
         raise HTTPException(status_code=401,
                             detail=message)
+    
+
+@router.get("/health")
+def health():
+    return {"status": "ok"}
