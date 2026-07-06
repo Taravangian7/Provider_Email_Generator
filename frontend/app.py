@@ -76,7 +76,7 @@ load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 pages = [
-    st.Page("src/mails.py", title="Correos", icon="✉️"),
+    st.Page("src/mails.py", title="Enviar Correo", icon="✉️"),
     st.Page("src/brands.py", title="Marcas", icon="🏷️"),
     st.Page("src/providers.py", title="Proveedores", icon="🏢"),
     st.Page("src/products.py", title="Productos", icon="📦"),
@@ -131,7 +131,7 @@ if not st.session_state.get("token"):
             st.error("Ingresar usuario y contraseña")
         else:
             try:
-                response = requests.post(f"{API_URL}/auth/login",data={"username": user, "password": password})
+                response = requests.post(f"{API_URL}/auth/login",data={"username": user, "password": password},timeout=10)
                 if response.status_code==200:
                     token=response.json()["access_token"]
                     save_token(token=token)
@@ -139,7 +139,7 @@ if not st.session_state.get("token"):
                 else:
                     error=response.json()["detail"]
                     st.error(error)
-            except:
+            except requests.exceptions.RequestException:
                 st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
     st.stop()
 

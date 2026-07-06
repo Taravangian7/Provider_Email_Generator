@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from modules.db import get_db
 from modules.exceptions import handle_integrity_error
 from modules.mail import create_preview,send_mail
+from modules.google_oauth import send_mail_google
 from sqlalchemy import text,bindparam
 from backend.models.models import SentCreate,SentResponse,MailPreviewCreate,MailPreviewResponse,SentHistoryResponse
 
@@ -61,7 +62,9 @@ def send(id_product: int=Form(...),id_provider: int=Form(...),invoice: Optional[
     mail=SentCreate(id_product=id_product,id_provider=id_provider,invoice=invoice,case_type=case_type,body_content=body_content,subject=subject)
     excel_bytes=excel.file.read() if excel else None
     try:
-        send_mail(to_email=to_email,subject=mail.subject,body=mail.body_content,image_urls=image_urls,excel_bytes=excel_bytes)
+        token_row = db.execute(text("SELECT refresh_token FROM GOOGLE_TOKEN LIMIT 1")).fetchone()
+        refresh_token = token_row._mapping["refresh_token"]
+        send_mail_google(refresh_token=refresh_token,to_email=to_email,subject=subject,body=body_content,image_urls=image_urls,excel_bytes=excel_bytes)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     try:

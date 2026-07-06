@@ -8,14 +8,30 @@ import time
 #Marco como última pestaña visitada(Para comportamiento de Products)
 st.session_state["last_page"] = "mails"
 
+load_dotenv(override=True)
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+
 headers = get_headers()
 
 with st.sidebar:
-        if st.button("Cerrar sesión"):
-            logout()
-
-load_dotenv()
-API_URL = os.getenv("API_URL", "http://localhost:8000")
+    st.divider()
+    gmail_status = requests.get(f"{API_URL}/google/status", headers=get_headers())
+    if gmail_status.status_code == 200 and gmail_status.json().get("connected"):
+        email = gmail_status.json().get("email")
+        st.markdown(f"""
+            <div style='font-size:12px; color:#888; margin-bottom:4px;'>Gmail conectado</div>
+            <div style='font-size:13px; color:#ccc; margin-bottom:8px;'>{email}</div>
+        """, unsafe_allow_html=True)
+        if st.button("Desconectar Gmail", use_container_width=True):
+            requests.delete(f"{API_URL}/google/disconnect", headers=get_headers())
+            st.rerun()
+    else:
+        if st.button("Conectar Gmail", use_container_width=True):
+            auth_response = requests.get(f"{API_URL}/google/authorize", headers=get_headers())
+            auth_url = auth_response.json()["auth_url"]
+            st.markdown(f'<meta http-equiv="refresh" content="0;url={auth_url}">', unsafe_allow_html=True)
+    if st.button("Cerrar sesión", use_container_width=True):
+        logout()
 
 def clear_preview():
     if "preview_data" in st.session_state:
@@ -133,24 +149,27 @@ if st.session_state.get("preview_data"):
         with col_btn:
             sent_email = st.form_submit_button("Enviar", type="primary")
         if sent_email:
-            image_urls = [
-                f["file_path"] for f in product_files_data
-                if st.session_state.get(f"foto_{f['id_file']}")
-            ]
-            if excel_file:
-                excel_file_bytes = excel_file.read()
-                send_file={"excel": excel_file_bytes}
+            if not gmail_status.json().get("connected"):
+                st.error("Debés conectar tu cuenta de Gmail antes de enviar.")
             else:
-                send_file= None
-            try:
-                sent=requests.post(f"{API_URL}/mail/send",data={"id_product":preview['id_product'],"id_provider":preview['id_provider'],"invoice":preview['invoice'],"case_type":preview["case_type"],"body_content":body_final,"subject":subject,"to_email":preview["to_email"],"image_urls":image_urls},files=send_file ,headers=headers)
-                if sent.status_code==200:
-                    st.success("Mail enviado")
-                    st.session_state["form_key_send"] += 1 #Al enviar mail, queda preseleccionado el provider pero resetea form
-                    time.sleep(0.5)
-                    clear_preview()
-                    st.rerun()
+                image_urls = [
+                    f["file_path"] for f in product_files_data
+                    if st.session_state.get(f"foto_{f['id_file']}")
+                ]
+                if excel_file:
+                    excel_file_bytes = excel_file.read()
+                    send_file={"excel": excel_file_bytes}
                 else:
-                    error=sent.json()["detail"]
-            except:
-                st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")
+                    send_file= None
+                try:
+                    sent=requests.post(f"{API_URL}/mail/send",data={"id_product":preview['id_product'],"id_provider":preview['id_provider'],"invoice":preview['invoice'],"case_type":preview["case_type"],"body_content":body_final,"subject":subject,"to_email":preview["to_email"],"image_urls":image_urls},files=send_file ,headers=headers)
+                    if sent.status_code==200:
+                        st.success("Mail enviado")
+                        st.session_state["form_key_send"] += 1 #Al enviar mail, queda preseleccionado el provider pero resetea form
+                        time.sleep(0.5)
+                        clear_preview()
+                        st.rerun()
+                    else:
+                        error=sent.json()["detail"]
+                except requests.exceptions.RequestException:
+                    st.error("Error al conectar con el servidor. Intentá de nuevo en unos segundos.")

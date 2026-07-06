@@ -23,10 +23,10 @@ st.session_state["last_page"] = "history"
 headers = get_headers()
 
 with st.sidebar:
-        if st.button("Cerrar sesión"):
+        if st.button("Cerrar sesión", use_container_width=True):
             logout()
 
-load_dotenv()
+load_dotenv(override=True)
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 #Obtengo histórico y guardo en caché

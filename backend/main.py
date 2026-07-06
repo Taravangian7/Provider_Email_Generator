@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from modules.db import get_db
 from modules.auth import get_current_user
-from backend.routers import brands,providers,products,mails,auth
+from backend.routers import brands,providers,products,mails,auth,google_oauth
+
 
 app=FastAPI()
 
@@ -17,4 +18,5 @@ app.include_router(brands.router,dependencies=[Depends(get_current_user)])
 app.include_router(providers.router,dependencies=[Depends(get_current_user)])
 app.include_router(products.router,dependencies=[Depends(get_current_user)])
 app.include_router(mails.router,dependencies=[Depends(get_current_user)])
+app.include_router(google_oauth.router)
 app.include_router(auth.router)
