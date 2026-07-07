@@ -85,6 +85,9 @@ pages = [
 ]
 
 #Si tengo el token en las coockies del navegador se lo paso al state de streamlit.
+#Lee las cookies del proceso del servidor donde se ejecuta, no del navegador en especifico donde se está usando
+#Entonces siempre que este autenticado en un dispositivo, va a darme el token en otro desde donde quiera acceder
+#Al estar pensado para un solo usuario, no es necesariamente un problema. Pero sí un punto debil
 token = controller.get("token")
 if token:
     st.session_state["token"] = token
