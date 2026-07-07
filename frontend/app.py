@@ -85,29 +85,28 @@ pages = [
 ]
 
 #Si tengo el token en las coockies del navegador se lo paso al state de streamlit.
-if not st.session_state.get("token"):
-    with st.spinner(""):
-        token = controller.get("token")
-        if token:
-            st.session_state["token"] = token
-        else:
-            retries= st.session_state.get("cookie_retries",0)
-            if retries<3:
-                st.session_state["cookie_retries"]=retries+1
-                time.sleep(1)
-                st.rerun()
-                st.stop()
-            pg = st.navigation(pages, position="hidden")
-            st.markdown("""
-                <style>
-                    [data-testid="stSidebar"] {
-                        display: none !important;
-                    }
-                    [data-testid="collapsedControl"] {
-                        display: none !important;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
+token = controller.get("token")
+if token:
+    st.session_state["token"] = token
+else:
+    st.session_state.pop("token", None) 
+    retries= st.session_state.get("cookie_retries",0)
+    if retries<3:
+        st.session_state["cookie_retries"]=retries+1
+        time.sleep(1)
+        st.rerun()
+        st.stop()
+    pg = st.navigation(pages, position="hidden")
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] {
+                display: none !important;
+            }
+            [data-testid="collapsedControl"] {
+                display: none !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
 if st.session_state.get("token") and is_token_expired():
     st.session_state.clear()

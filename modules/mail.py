@@ -20,6 +20,8 @@ def create_preview(template:str,product_name:str,brand_name:str,serial_number:st
     body=template.format(**variables)
     return body
 
+
+#Termino NO usando esta función porque el server me lo toma como spam
 def send_mail(to_email:str, subject:str, body:str, image_urls: Optional[list[str]]=None, excel_bytes: Optional[bytes]=None):
     # 1. Crear el contenedor del mail
     mail = MIMEMultipart()
